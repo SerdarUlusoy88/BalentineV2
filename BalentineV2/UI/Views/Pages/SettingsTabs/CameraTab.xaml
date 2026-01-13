@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="BalentineV2.UI.Views.Pages.SettingsTabs.CameraTab"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Grid RowDefinitions="Auto,Auto,Auto"
+          RowSpacing="14">
+
+        <!-- Başlık -->
+        <Label Text="Kamera Ayarları"
+               FontSize="16"
+               FontAttributes="Bold"
+               TextColor="{StaticResource ST_Text}"
+               Opacity="0.95" />
+
+        <!-- Kamera sayısı (Dropdown) -->
+        <Border Grid.Row="1"
+                Stroke="{StaticResource ST_Line}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 10"
+                BackgroundColor="#16FFFFFF"
+                Padding="14">
+
+            <Grid ColumnDefinitions="*,180"
+                  ColumnSpacing="12">
+
+                <Label Text="Kamera Sayısı"
+                       TextColor="{StaticResource ST_Text}"
+                       Opacity="0.92"
+                       VerticalTextAlignment="Center" />
+
+                <!-- Dropdown kutusu -->
+                <Border Grid.Column="1"
+                        Stroke="{StaticResource ST_Accent}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 10"
+                        BackgroundColor="#12FFFFFF"
+                        Padding="10,6"
+                        HorizontalOptions="End"
+                        VerticalOptions="Center">
+
+                    <Picker x:Name="CameraCountPicker"
+                            Title="Seç"
+                            TextColor="{StaticResource ST_Text}"
+                            BackgroundColor="Transparent"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Center"
+                            SelectedIndexChanged="OnCameraCountChanged">
+                        <Picker.Items>
+                            <x:String>1</x:String>
+                            <x:String>2</x:String>
+                        </Picker.Items>
+                    </Picker>
+
+                </Border>
+
+            </Grid>
+        </Border>
+
+        <!-- Aynalama ayarları: küçük boxlar -->
+        <Grid Grid.Row="2"
+              ColumnDefinitions="*,*"
+              ColumnSpacing="12">
+
+            <!-- Kamera 1 box -->
+            <Border Stroke="{StaticResource ST_Line}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10"
+                    BackgroundColor="#14FFFFFF"
+                    Padding="14">
+
+                <Grid RowDefinitions="Auto,Auto"
+                      RowSpacing="10">
+
+                    <!-- küçük accent şerit -->
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="#18FFFFFF"
+                            Padding="10,6">
+                        <Grid ColumnDefinitions="Auto,*"
+                              ColumnSpacing="8">
+
+                            <BoxView WidthRequest="6"
+                                     HeightRequest="6"
+                                     CornerRadius="3"
+                                     BackgroundColor="{StaticResource ST_Accent}"
+                                     VerticalOptions="Center" />
+
+                            <Label Grid.Column="1"
+                                   Text="Kamera 1"
+                                   TextColor="{StaticResource ST_Text}"
+                                   FontAttributes="Bold"
+                                   Opacity="0.95"
+                                   VerticalTextAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <Grid Grid.Row="1"
+                          ColumnDefinitions="*,Auto"
+                          ColumnSpacing="10">
+
+                        <Label Text="Aynalama"
+                               TextColor="{StaticResource ST_Text}"
+                               Opacity="0.85"
+                               VerticalTextAlignment="Center" />
+
+                        <Switch x:Name="MirrorCam1Switch"
+                                Grid.Column="1"
+                                IsToggled="False"
+                                HorizontalOptions="End"
+                                VerticalOptions="Center" />
+                    </Grid>
+
+                </Grid>
+            </Border>
+
+            <!-- Kamera 2 box (1 seçilince gizlenecek) -->
+            <Border x:Name="Camera2Box"
+                    Grid.Column="1"
+                    Stroke="{StaticResource ST_Line}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10"
+                    BackgroundColor="#14FFFFFF"
+                    Padding="14"
+                    IsVisible="False">
+
+                <Grid RowDefinitions="Auto,Auto"
+                      RowSpacing="10">
+
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="#18FFFFFF"
+                            Padding="10,6">
+                        <Grid ColumnDefinitions="Auto,*"
+                              ColumnSpacing="8">
+
+                            <BoxView WidthRequest="6"
+                                     HeightRequest="6"
+                                     CornerRadius="3"
+                                     BackgroundColor="{StaticResource ST_Accent}"
+                                     VerticalOptions="Center" />
+
+                            <Label Grid.Column="1"
+                                   Text="Kamera 2"
+                                   TextColor="{StaticResource ST_Text}"
+                                   FontAttributes="Bold"
+                                   Opacity="0.95"
+                                   VerticalTextAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <Grid Grid.Row="1"
+                          ColumnDefinitions="*,Auto"
+                          ColumnSpacing="10">
+
+                        <Label Text="Aynalama"
+                               TextColor="{StaticResource ST_Text}"
+                               Opacity="0.85"
+                               VerticalTextAlignment="Center" />
+
+                        <Switch x:Name="MirrorCam2Switch"
+                                Grid.Column="1"
+                                IsToggled="False"
+                                HorizontalOptions="End"
+                                VerticalOptions="Center" />
+                    </Grid>
+
+                </Grid>
+            </Border>
+
+        </Grid>
+
+    </Grid>
+</ContentView>

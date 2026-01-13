@@ -1,0 +1,224 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- ========================================================= -->
+	<!-- 🔹 GENERAL / TARGETS                                     -->
+	<!-- ========================================================= -->
+	<PropertyGroup>
+		<!-- Only platforms we actually use -->
+		<TargetFrameworks>net8.0-android;net8.0-windows10.0.19041.0</TargetFrameworks>
+
+		<OutputType>Exe</OutputType>
+		<RootNamespace>BalentineV2</RootNamespace>
+
+		<UseMaui>true</UseMaui>
+		<SingleProject>true</SingleProject>
+
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<!-- App identity -->
+		<ApplicationTitle>Balentine</ApplicationTitle>
+		<ApplicationId>com.Celikel.balentinev2</ApplicationId>
+
+		<!-- Versioning -->
+		<ApplicationDisplayVersion>2.0</ApplicationDisplayVersion>
+		<ApplicationVersion>1</ApplicationVersion>
+
+		<!-- Minimum OS versions -->
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+			21.0
+		</SupportedOSPlatformVersion>
+
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+			10.0.17763.0
+		</SupportedOSPlatformVersion>
+
+		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+			10.0.17763.0
+		</TargetPlatformMinVersion>
+
+		<!-- Android settings for real tablet -->
+		<AndroidSupportedAbis Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">arm64-v8a</AndroidSupportedAbis>
+		<AndroidPackageFormat Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">apk</AndroidPackageFormat>
+
+	</PropertyGroup>
+
+	<!-- ========================================================= -->
+	<!-- 🔹 MAUI RESOURCES                                        -->
+	<!-- ========================================================= -->
+	<ItemGroup>
+		<!-- App Icon -->
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" />
+		<!-- Splash Screen -->
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+
+		<!-- Images -->
+		<MauiImage Include="Resources\Images\*" />
+		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
+
+		<!-- Fonts -->
+		<MauiFont Include="Resources\Fonts\*" />
+
+		<!-- Raw assets -->
+		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<!-- ========================================================= -->
+	<!-- 🔹 XAML FILE REGISTRATION                                -->
+	<!-- ========================================================= -->
+	<ItemGroup>
+		<MauiXaml Update="Resources\Styles\Controls.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="Resources\Styles\Layout.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="Resources\Styles\Typography.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Components\Bars\LanguageSelectorView.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Components\Bars\TopStatusBarView.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Components\Common\PageFooterView.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Components\Navigation\IconRailView.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Components\Popups\LanguageDropdownPopup.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Main\MainLayout.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\HomeView.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\SettingsView.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<!-- Module pages -->
+		<MauiXaml Update="UI\Views\Pages\Modules\MonitoringView.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\Modules\FanView.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\Modules\HumidityView.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\Modules\CameraView.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\Modules\LampView.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\Modules\ScaleView.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\Modules\HydraulicView.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\Modules\LubricationView.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\SettingsTabs\CameraTab.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\SettingsTabs\ConnectionTab.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\SettingsTabs\DataResetTab.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\SettingsTabs\LogsTab.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\SettingsTabs\MachineInfoTab.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\SettingsTabs\MenuSelectionTab.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\SettingsTabs\PressureCalibrationTab.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\SettingsTabs\ScaleCalibrationTab.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="UI\Views\Pages\SettingsTabs\SettingsTabStyles.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+	</ItemGroup>
+
+	<!-- ========================================================= -->
+	<!-- 🔹 PACKAGES                                              -->
+	<!-- ========================================================= -->
+	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Maui" Version="8.0.0" />
+		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="4.1.2" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
+	</ItemGroup>
+
+	<!-- ========================================================= -->
+	<!-- 🔹 FOLDER STRUCTURE (optional but keeps solution clean)  -->
+	<!-- ========================================================= -->
+	<ItemGroup>
+		<Folder Include="Core\Comms\" />
+		<Folder Include="Core\Logging\" />
+		<Folder Include="Core\Utilities\" />
+		<Folder Include="Core\Tags\" />
+		<Folder Include="Infrastructure\Comms\" />
+		<Folder Include="Infrastructure\Logging\" />
+		<Folder Include="Infrastructure\Config\" />
+
+		<Folder Include="UI\Converters\" />
+		<Folder Include="UI\ViewModels\Tabs\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Compile Update="Resources\Strings\AppStrings.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>AppStrings.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+	<ItemGroup>
+	  <EmbeddedResource Update="Resources\Strings\AppStrings.resx">
+	    <Generator>ResXFileCodeGenerator</Generator>
+	    <LastGenOutput>AppStrings.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+</Project>

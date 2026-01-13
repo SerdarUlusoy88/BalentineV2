@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="BalentineV2.UI.Views.Pages.SettingsTabs.ConnectionTab"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- Satır 1 -->
+        <Grid RowDefinitions="Auto,12,1"
+              ColumnDefinitions="210,*,24"
+              Margin="0,8,0,0">
+
+            <Label Grid.Row="0" Grid.Column="0"
+                   Text="Bağlantı Ayarları"
+                   Style="{StaticResource ST_LeftField}" />
+
+           
+            <BoxView Grid.Row="2" Grid.ColumnSpan="3"
+                     HeightRequest="1"
+                     BackgroundColor="{StaticResource ST_Line}"
+                     Opacity="0.55" />
+        </Grid>
+
+       
+
+        <!-- Onayla -->
+        <Button Grid.Row="3"
+                Text="Onayla"
+                HorizontalOptions="Center"
+                Margin="0,16,0,0"
+                Padding="28,12"
+                BackgroundColor="#B4BDC6"
+                TextColor="White"
+                CornerRadius="6"
+                FontAttributes="Bold" />
+
+    </Grid>
+</ContentView>

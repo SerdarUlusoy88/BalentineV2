@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="BalentineV2.UI.Components.Common.PageFooterView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--
+      Rail genişliği açıkken: 260
+      Normal sol padding: 22
+      => Sol inset: 282
+    -->
+    <Grid ColumnDefinitions="*,Auto"
+          Padding="282,0,22,18"
+          VerticalOptions="End"
+          HorizontalOptions="Fill">
+
+        <Label x:Name="FooterText"
+               Grid.Column="0"
+               TextColor="#B9C3CC"
+               FontSize="12"
+               Opacity="0.9"
+               VerticalOptions="End"
+               HorizontalOptions="Start" />
+
+        <Image Grid.Column="1"
+               Source="balentine.png"
+               HeightRequest="42"
+               Aspect="AspectFit"
+               VerticalOptions="End"
+               HorizontalOptions="End"
+               Opacity="0.95" />
+    </Grid>
+</ContentView>

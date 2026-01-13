@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="BalentineV2.UI.Views.Pages.SettingsView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#0B0F14">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="SettingsTabs/SettingsTabStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Sabit offset mantığı:
+                 Left: IconRail açık genişlik (örn 260) + biraz boşluk
+                 Top : TopStatusBar + boşluk
+                 Right: genel boşluk
+                 Bottom: Footer bandı için rezerv (logo + padding) -->
+            <Thickness x:Key="SettingsInset">120,90,24,80</Thickness>
+
+            <Color x:Key="PanelBg">#3E4852</Color>
+            <Color x:Key="PanelBg2">#36404A</Color>
+
+            <Style x:Key="TabTextStyle" TargetType="Label">
+                <Setter Property="TextColor" Value="{StaticResource ST_Text}" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="Opacity" Value="0.90" />
+                <Setter Property="VerticalTextAlignment" Value="Center" />
+            </Style>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+
+        <!-- okunabilirlik -->
+        <BoxView Color="#000000"
+                 Opacity="0.35"
+                 ZIndex="1" />
+
+        <!-- içerik -->
+        <Grid ZIndex="2"
+              Margin="{StaticResource SettingsInset}"
+              RowDefinitions="Auto,Auto,*">
+
+            <!-- Büyük cam panel -->
+            <Border Grid.RowSpan="3"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 10"
+                    Padding="0">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#D03E4852" Offset="0.0" />
+                        <GradientStop Color="#D036404A" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+
+            <!-- TAB ROW -->
+            <Grid Grid.Row="0"
+                  Padding="22,16,22,8"
+                  ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                  ColumnSpacing="28">
+
+                <Label x:Name="T_Baglanti"
+                       Text="Bağlantı&#10;Ayarları"
+                       Style="{StaticResource TabTextStyle}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTabBaglanti" />
+                    </Label.GestureRecognizers>
+                </Label>
+
+                <Label x:Name="T_Menu"
+                       Grid.Column="1"
+                       Text="Menü&#10;Seçimi"
+                       Style="{StaticResource TabTextStyle}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTabMenu" />
+                    </Label.GestureRecognizers>
+                </Label>
+
+                <Label x:Name="T_Kamera"
+                       Grid.Column="2"
+                       Text="Kamera&#10;Ayarları"
+                       Style="{StaticResource TabTextStyle}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTabKamera" />
+                    </Label.GestureRecognizers>
+                </Label>
+
+                <Label x:Name="T_Basinc"
+                       Grid.Column="3"
+                       Text="Basınç&#10;Kalibrasyonu"
+                       Style="{StaticResource TabTextStyle}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTabBasinc" />
+                    </Label.GestureRecognizers>
+                </Label>
+
+                <Label x:Name="T_Kayitlar"
+                       Grid.Column="4"
+                       Text="Kayıtlar"
+                       Style="{StaticResource TabTextStyle}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTabKayitlar" />
+                    </Label.GestureRecognizers>
+                </Label>
+
+                <Label x:Name="T_Makine"
+                       Grid.Column="5"
+                       Text="Makine&#10;Bilgileri"
+                       Style="{StaticResource TabTextStyle}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTabMakine" />
+                    </Label.GestureRecognizers>
+                </Label>
+
+                <Label x:Name="T_Veri"
+                       Grid.Column="6"
+                       Text="Veri&#10;Sıfırlama"
+                       Style="{StaticResource TabTextStyle}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTabVeri" />
+                    </Label.GestureRecognizers>
+                </Label>
+
+                <Label x:Name="T_Tarti"
+                       Grid.Column="7"
+                       Text="Tartı&#10;Kalibrasyonu"
+                       Style="{StaticResource TabTextStyle}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTabTarti" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </Grid>
+
+            <!-- Tab alt çizgisi -->
+            <BoxView Grid.Row="1"
+                     Margin="22,0,22,0"
+                     HeightRequest="1"
+                     BackgroundColor="{StaticResource ST_Line}"
+                     Opacity="0.55"
+                     VerticalOptions="Start" />
+
+            <!-- CONTENT HOST -->
+            <Grid Grid.Row="2"
+                  Padding="22,16,22,18">
+                <ContentView x:Name="TabContentHost" />
+            </Grid>
+
+        </Grid>
+    </Grid>
+</ContentPage>

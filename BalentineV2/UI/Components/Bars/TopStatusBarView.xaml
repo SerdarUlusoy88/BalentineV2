@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="BalentineV2.UI.Components.Bars.TopStatusBarView"
+    x:Name="Root"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:bars="clr-namespace:BalentineV2.UI.Components.Bars"
+    BackgroundColor="Transparent"
+    HorizontalOptions="Fill"
+    VerticalOptions="Start">
+
+    <!-- 2 satır: Bar(56) + Dropdown(Auto) -->
+    <Grid RowDefinitions="56,Auto"
+          HorizontalOptions="Fill"
+          VerticalOptions="Start">
+
+        <!-- ROW 0: Bar -->
+        <Grid Grid.Row="0"
+              Padding="12,8"
+              ColumnDefinitions="Auto,*,Auto"
+              HorizontalOptions="Fill"
+              VerticalOptions="Start">
+
+            <!-- LEFT: Notice (IconRail'in hemen sağına) -->
+            <Grid Grid.Column="0"
+                  x:Name="NoticeHost"
+                  VerticalOptions="Center"
+                  HorizontalOptions="Start"
+                  TranslationX="0">
+
+                <Border StrokeThickness="0"
+                        BackgroundColor="#000000"
+                        Opacity="0.55"
+                        StrokeShape="RoundRectangle 14"
+                        Padding="10,6">
+                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                        <Image Source="{Binding CurrentNoticeIcon, Source={x:Reference Root}}"
+                               WidthRequest="18"
+                               HeightRequest="18">
+                            <Image.Behaviors>
+                                <toolkit:IconTintColorBehavior TintColor="#D8DEE6" />
+                            </Image.Behaviors>
+                        </Image>
+
+                        <Label Text="{Binding CurrentNoticeText, Source={x:Reference Root}}"
+                               TextColor="#D8DEE6"
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- MIDDLE: Chips -->
+            <CollectionView Grid.Column="1"
+                            x:Name="ChipList"
+                            ItemsLayout="HorizontalList"
+                            HorizontalOptions="End"
+                            VerticalOptions="Center"
+                            SelectionMode="None"
+                            BackgroundColor="Transparent"
+                            Margin="0,0,10,0">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                            <Image Source="{Binding IconSvg}"
+                                   WidthRequest="18"
+                                   HeightRequest="18">
+                                <Image.Behaviors>
+                                    <toolkit:IconTintColorBehavior TintColor="#D8DEE6" />
+                                </Image.Behaviors>
+                            </Image>
+
+                            <Label Text="{Binding DisplayText}"
+                                   TextColor="#D8DEE6"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"/>
+
+                            <BoxView WidthRequest="1"
+                                     HeightRequest="18"
+                                     Opacity="0.35"
+                                     BackgroundColor="#D8DEE6"
+                                     VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- RIGHT: Language button -->
+            <bars:LanguageSelectorView Grid.Column="2"
+                                       x:Name="LangSelector"
+                                       VerticalOptions="Center"
+                                       HorizontalOptions="End"/>
+        </Grid>
+
+        <!-- ROW 1: Dropdown -->
+        <Grid Grid.Row="1"
+              Padding="0,0,12,0"
+              ColumnDefinitions="*,Auto"
+              HorizontalOptions="Fill"
+              VerticalOptions="Start">
+
+            <Border Grid.Column="1"
+                    x:Name="LangDropPanel"
+                    IsVisible="False"
+                    BackgroundColor="#252B33"
+                    Stroke="#3A4048"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="8"
+                    WidthRequest="90"
+                    HorizontalOptions="End"
+                    VerticalOptions="Start">
+
+                <VerticalStackLayout Spacing="6">
+
+                    <Button Text="TR"
+                            Clicked="OnPickTR"
+                            Padding="10,8"
+                            BackgroundColor="Transparent"
+                            TextColor="#D8DEE6"
+                            FontAttributes="Bold"
+                            CornerRadius="8" />
+
+                    <BoxView HeightRequest="1"
+                             Opacity="0.25"
+                             BackgroundColor="#D8DEE6" />
+
+                    <Button Text="EN"
+                            Clicked="OnPickEN"
+                            Padding="10,8"
+                            BackgroundColor="Transparent"
+                            TextColor="#D8DEE6"
+                            FontAttributes="Bold"
+                            CornerRadius="8" />
+
+                </VerticalStackLayout>
+            </Border>
+
+        </Grid>
+
+    </Grid>
+</ContentView>

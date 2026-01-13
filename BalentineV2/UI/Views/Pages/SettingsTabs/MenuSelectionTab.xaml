@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="BalentineV2.UI.Views.Pages.SettingsTabs.MenuSelectionTab"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Grid ColumnDefinitions="*,Auto,*,Auto"
+          RowDefinitions="Auto,Auto,Auto,Auto"
+          ColumnSpacing="18"
+          RowSpacing="18">
+
+        <!-- SOL -->
+        <Grid x:Name="Row_Monitoring" Grid.Row="0" Grid.Column="0" ColumnDefinitions="*,Auto">
+            <Label Text="Monitoring" Style="{StaticResource ST_LeftField}" />
+            <HorizontalStackLayout Grid.Column="1" Spacing="10">
+                <Label Text="Ekle" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" />
+                <Button Text="+" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnEnableClicked" CommandParameter="monitoring" />
+                <Label Text="Çıkar" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" Margin="8,0,0,0" />
+                <Button Text="X" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnDisableClicked" CommandParameter="monitoring" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <Grid x:Name="Row_Fan" Grid.Row="1" Grid.Column="0" ColumnDefinitions="*,Auto">
+            <Label Text="Fan" Style="{StaticResource ST_LeftField}" />
+            <HorizontalStackLayout Grid.Column="1" Spacing="10">
+                <Label Text="Ekle" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" />
+                <Button Text="+" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnEnableClicked" CommandParameter="fan" />
+                <Label Text="Çıkar" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" Margin="8,0,0,0" />
+                <Button Text="X" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnDisableClicked" CommandParameter="fan" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <Grid x:Name="Row_Humidity" Grid.Row="2" Grid.Column="0" ColumnDefinitions="*,Auto">
+            <Label Text="Nem" Style="{StaticResource ST_LeftField}" />
+            <HorizontalStackLayout Grid.Column="1" Spacing="10">
+                <Label Text="Ekle" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" />
+                <Button Text="+" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnEnableClicked" CommandParameter="humidity" />
+                <Label Text="Çıkar" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" Margin="8,0,0,0" />
+                <Button Text="X" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnDisableClicked" CommandParameter="humidity" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <Grid x:Name="Row_Camera" Grid.Row="3" Grid.Column="0" ColumnDefinitions="*,Auto">
+            <Label Text="Kamera" Style="{StaticResource ST_LeftField}" />
+            <HorizontalStackLayout Grid.Column="1" Spacing="10">
+                <Label Text="Ekle" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" />
+                <Button Text="+" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnEnableClicked" CommandParameter="camera" />
+                <Label Text="Çıkar" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" Margin="8,0,0,0" />
+                <Button Text="X" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnDisableClicked" CommandParameter="camera" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <!-- SAĞ -->
+        <Grid x:Name="Row_Lamp" Grid.Row="0" Grid.Column="2" ColumnDefinitions="*,Auto">
+            <Label Text="Lamba" Style="{StaticResource ST_LeftField}" />
+            <HorizontalStackLayout Grid.Column="1" Spacing="10">
+                <Label Text="Ekle" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" />
+                <Button Text="+" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnEnableClicked" CommandParameter="lamp" />
+                <Label Text="Çıkar" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" Margin="8,0,0,0" />
+                <Button Text="X" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnDisableClicked" CommandParameter="lamp" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <Grid x:Name="Row_Scale" Grid.Row="1" Grid.Column="2" ColumnDefinitions="*,Auto">
+            <Label Text="Tartı" Style="{StaticResource ST_LeftField}" />
+            <HorizontalStackLayout Grid.Column="1" Spacing="10">
+                <Label Text="Ekle" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" />
+                <Button Text="+" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnEnableClicked" CommandParameter="scale" />
+                <Label Text="Çıkar" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" Margin="8,0,0,0" />
+                <Button Text="X" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnDisableClicked" CommandParameter="scale" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <Grid x:Name="Row_Hydraulic" Grid.Row="2" Grid.Column="2" ColumnDefinitions="*,Auto">
+            <Label Text="Hidrolik" Style="{StaticResource ST_LeftField}" />
+            <HorizontalStackLayout Grid.Column="1" Spacing="10">
+                <Label Text="Ekle" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" />
+                <Button Text="+" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnEnableClicked" CommandParameter="hydraulic" />
+                <Label Text="Çıkar" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" Margin="8,0,0,0" />
+                <Button Text="X" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnDisableClicked" CommandParameter="hydraulic" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <Grid x:Name="Row_Lubrication" Grid.Row="3" Grid.Column="2" ColumnDefinitions="*,Auto">
+            <Label Text="Yağlama" Style="{StaticResource ST_LeftField}" />
+            <HorizontalStackLayout Grid.Column="1" Spacing="10">
+                <Label Text="Ekle" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" />
+                <Button Text="+" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnEnableClicked" CommandParameter="lubrication" />
+                <Label Text="Çıkar" TextColor="{StaticResource ST_Text}" FontSize="13" FontAttributes="Bold" Margin="8,0,0,0" />
+                <Button Text="X" Style="{StaticResource ST_MiniIconButton}"
+                        Clicked="OnDisableClicked" CommandParameter="lubrication" />
+            </HorizontalStackLayout>
+        </Grid>
+
+    </Grid>
+</ContentView>

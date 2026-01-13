@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Color x:Key="ST_Line">#9AA6B1</Color>
+    <Color x:Key="ST_Text">#E9EEF3</Color>
+    <Color x:Key="ST_TextDim">#C7D0D8</Color>
+    <Color x:Key="ST_Accent">#F6A821</Color>
+
+    <Style x:Key="ST_LeftField" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource ST_Text}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="ST_RightValue" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource ST_TextDim}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="ST_MiniIconButton" TargetType="Button">
+        <Setter Property="TextColor" Value="{StaticResource ST_Text}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="BorderColor" Value="{StaticResource ST_Line}" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="WidthRequest" Value="18" />
+        <Setter Property="HeightRequest" Value="18" />
+        <Setter Property="MinimumHeightRequest" Value="18" />
+        <Setter Property="MinimumWidthRequest" Value="18" />
+    </Style>
+
+</ResourceDictionary>

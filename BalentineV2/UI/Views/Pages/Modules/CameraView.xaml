@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentPage
+    x:Class="BalentineV2.UI.Views.Pages.Modules.CameraView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:BalentineV2.UI.Controls"
+    BackgroundColor="Transparent">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- IconRail + TopStatusBar inset -->
+            <Thickness x:Key="CameraInset">120,95,24,70</Thickness>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid Margin="{StaticResource CameraInset}"
+          RowDefinitions="Auto,*"
+          RowSpacing="10">
+
+        <!-- Üst küçük kontrol satırı (şimdilik sadece bilgi) -->
+        <Border Grid.Row="0"
+                Stroke="{StaticResource ST_Line}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 10"
+                BackgroundColor="#14FFFFFF"
+                Padding="12,8">
+            <Grid ColumnDefinitions="*,Auto"
+                  ColumnSpacing="10">
+                <Label x:Name="InfoLbl"
+                       Text="Camera"
+                       TextColor="{StaticResource ST_Text}"
+                       Opacity="0.90"
+                       VerticalTextAlignment="Center" />
+                <Label x:Name="ErrLbl"
+                       Text=""
+                       TextColor="{StaticResource ST_TextDim}"
+                       Opacity="0.85"
+                       VerticalTextAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <!-- 2 kamera yan yana -->
+        <Grid Grid.Row="1"
+              ColumnDefinitions="*,*"
+              ColumnSpacing="12">
+
+            <!-- SOL -->
+            <Border Stroke="{StaticResource ST_Line}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="#14FFFFFF"
+                    Padding="10">
+
+                <Grid RowDefinitions="Auto,*"
+                      RowSpacing="8">
+
+                    <Label Text="Kamera 1"
+                           TextColor="{StaticResource ST_Text}"
+                           FontAttributes="Bold"
+                           Opacity="0.90" />
+
+                    <Border Grid.Row="1"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 10"
+                            BackgroundColor="#0E000000"
+                            Padding="0">
+                        <Grid>
+                            <controls:AhdCameraView x:Name="CamLeft"
+                                                    CameraId="0"
+                                                    CameraResolution="720"
+                                                    Mirror="False" />
+
+                            <Label x:Name="LeftPh"
+                                   Text="Görüntü yok"
+                                   BackgroundColor="#AA000000"
+                                   TextColor="{StaticResource ST_TextDim}"
+                                   Opacity="0.95"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   ZIndex="99" />
+                        </Grid>
+                    </Border>
+
+                </Grid>
+            </Border>
+
+            <!-- SAĞ -->
+            <Border Grid.Column="1"
+                    Stroke="{StaticResource ST_Line}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="#14FFFFFF"
+                    Padding="10">
+
+                <Grid RowDefinitions="Auto,*"
+                      RowSpacing="8">
+
+                    <Label Text="Kamera 2"
+                           TextColor="{StaticResource ST_Text}"
+                           FontAttributes="Bold"
+                           Opacity="0.90" />
+
+                    <Border Grid.Row="1"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 10"
+                            BackgroundColor="#0E000000"
+                            Padding="0">
+                        <Grid>
+                            <controls:AhdCameraView x:Name="CamRight"
+                                                    CameraId="1"
+                                                    CameraResolution="720"
+                                                    Mirror="False" />
+
+                            <Label x:Name="RightPh"
+                                   Text="Görüntü yok"
+                                   BackgroundColor="#AA000000"
+                                   TextColor="{StaticResource ST_TextDim}"
+                                   Opacity="0.95"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   ZIndex="99" />
+                        </Grid>
+                    </Border>
+
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Grid>
+</ContentPage>

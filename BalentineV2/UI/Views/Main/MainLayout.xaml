@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="BalentineV2.UI.Views.Main.MainLayout"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:bars="clr-namespace:BalentineV2.UI.Components.Bars"
+    xmlns:navigation="clr-namespace:BalentineV2.UI.Components.Navigation"
+    xmlns:common="clr-namespace:BalentineV2.UI.Components.Common"
+    BackgroundColor="#111">
+
+    <Grid>
+
+        <!-- 1) Sayfa içeriği (arka plan görsel/video burada olacak) -->
+        <ContentView
+            x:Name="ContentHost"
+            BackgroundColor="#111"
+            ZIndex="0" />
+
+        <!-- 2) TopStatusBar: Content’in ÜSTÜNE şeffaf oturur -->
+        <bars:TopStatusBarView
+            x:Name="TopBar"
+            ZIndex="50"
+            HorizontalOptions="Fill"
+            VerticalOptions="Start"
+            Margin="0"
+            Padding="0" />
+
+        <!-- 3) IconRail: her zaman üstte -->
+        <navigation:IconRailView
+            x:Name="IconRail"
+            ZIndex="60"
+            HorizontalOptions="Start"
+            VerticalOptions="Fill" />
+
+        <!-- 4) Toggle: overlay -->
+        <Label
+            x:Name="RailToggle"
+            ZIndex="70"
+            TextColor="#C9CED6"
+            BackgroundColor="Transparent"
+            FontSize="18"
+            FontAttributes="Bold"
+            HorizontalOptions="Start"
+            VerticalOptions="Start"
+            Padding="10,6" />
+
+        <!-- 5) FOOTER: her sayfada sabit -->
+        <common:PageFooterView
+            x:Name="PageFooter"
+            ZIndex="40"
+            HorizontalOptions="Fill"
+            VerticalOptions="End"
+            Margin="0"
+            Padding="0" />
+
+    </Grid>
+</ContentPage>
