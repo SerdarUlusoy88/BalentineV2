@@ -1,12 +1,29 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="BalentineV2.UI.Views.Pages.Modules.HydraulicView"
-             Title="Hydraulic">
-    <Grid Padding="24">
-        <Label Text="Hydraulic"
-               FontSize="28"
-               HorizontalOptions="Center"
-               VerticalOptions="Center" />
+<ContentPage
+    x:Class="BalentineV2.UI.Views.Pages.Modules.HydraulicView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    Title="Hydraulic"
+    BackgroundColor="#111">
+
+    <Grid>
+
+        <!-- Arka plan video -->
+        <toolkit:MediaElement
+            x:Name="BgVideo"
+            Source="embed://basinc_giris.mp4"
+            ShouldShowPlaybackControls="false"
+            ShouldAutoPlay="True"
+            Aspect="AspectFill"
+            Volume="0" />
+
+        <!-- İleride eklenecek UI için boş overlay katmanı -->
+        <Grid
+            BackgroundColor="#00000000"
+            Padding="24">
+            <!-- Şimdilik boş -->
+        </Grid>
+
     </Grid>
 </ContentPage>
