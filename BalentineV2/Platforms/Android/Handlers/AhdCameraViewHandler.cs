@@ -4,8 +4,8 @@ using System;
 using System.Linq;
 using global::Android.Graphics;
 using global::Android.Views;
-using Microsoft.Maui.Handlers;
 using Microsoft.Maui;
+using Microsoft.Maui.Handlers;
 using BalentineV2.UI.Controls;
 using Camera1 = global::Android.Hardware.Camera;
 
@@ -19,7 +19,6 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
             [nameof(AhdCameraView.CameraId)] = MapCameraId,
             [nameof(AhdCameraView.Mirror)] = MapMirror,
             [nameof(AhdCameraView.CameraResolution)] = MapResolution,
-            [nameof(AhdCameraView.IsActive)] = MapIsActive, // ✅
         };
 
     public static readonly CommandMapper<AhdCameraView, AhdCameraViewHandler> CommandMapper
@@ -30,9 +29,7 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
     private Camera1? _camera;
     private bool _isPreviewing;
     private int _cameraId;
-
     private SurfaceListener? _listener;
-    private SurfaceTexture? _surface; // ✅ surface sakla
 
     protected override TextureView CreatePlatformView()
     {
@@ -45,15 +42,11 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
     protected override void ConnectHandler(TextureView platformView)
     {
         base.ConnectHandler(platformView);
-
         _cameraId = VirtualView.CameraId;
 
-        // Surface zaten hazırsa sakla
+        // Eğer view zaten hazırsa direkt başlat
         if (platformView.IsAvailable && platformView.SurfaceTexture != null)
-            _surface = platformView.SurfaceTexture;
-
-        // ✅ aktifse dene
-        EnsureStarted();
+            OpenAndStart(platformView.SurfaceTexture);
     }
 
     protected override void DisconnectHandler(TextureView platformView)
@@ -61,28 +54,14 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         StopPreview();
         if (platformView != null) platformView.SurfaceTextureListener = null;
         _listener = null;
-        _surface = null;
         base.DisconnectHandler(platformView);
-    }
-
-    private void EnsureStarted()
-    {
-        if (VirtualView == null) return;
-        if (!VirtualView.IsActive) { StopPreview(); return; }
-
-        if (_isPreviewing) return;
-
-        var s = _surface ?? PlatformView?.SurfaceTexture;
-        if (PlatformView?.IsAvailable == true && s != null)
-            OpenAndStart(s);
     }
 
     private void OpenAndStart(SurfaceTexture surface)
     {
         try
         {
-            // aktif değilse başlamasın
-            if (!VirtualView.IsActive) return;
+            StopPreview();
 
             _camera = Camera1.Open(_cameraId);
             if (_camera is null) throw new Exception("Camera.Open returned null");
@@ -97,7 +76,7 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[AHD] start failed CameraId={_cameraId} Active={VirtualView.IsActive} Ex={ex}");
+            System.Diagnostics.Debug.WriteLine($"[AHD] start failed CameraId={_cameraId} Ex={ex}");
             StopPreview();
         }
     }
@@ -116,17 +95,6 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
             p.SetPreviewSize(best.Width, best.Height);
         }
 
-        var fpsRanges = p.SupportedPreviewFpsRange;
-        if (fpsRanges != null && fpsRanges.Count > 0)
-        {
-            var mid = fpsRanges[0];
-            p.SetPreviewFpsRange(mid[0], mid[1]);
-        }
-
-        var focusModes = p.SupportedFocusModes;
-        if (focusModes != null && focusModes.Contains(Camera1.Parameters.FocusModeContinuousVideo))
-            p.FocusMode = Camera1.Parameters.FocusModeContinuousVideo;
-
         cam.SetParameters(p);
         cam.SetDisplayOrientation(0);
     }
@@ -141,7 +109,6 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
             return;
         }
 
-        // Width/Height 0 olabiliyor -> yine de transform uygula, size gelince MapMirror tekrar çağrılır
         var w = PlatformView.Width <= 0 ? 1 : PlatformView.Width;
         var h = PlatformView.Height <= 0 ? 1 : PlatformView.Height;
 
@@ -158,7 +125,7 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
             {
                 _camera?.StopPreview();
                 _isPreviewing = false;
-                VirtualView?.OnStopped();
+                VirtualView.OnStopped();
             }
         }
         catch { }
@@ -171,8 +138,8 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
 
     private void Restart()
     {
-        StopPreview();
-        EnsureStarted();
+        if (PlatformView?.IsAvailable == true && PlatformView.SurfaceTexture != null)
+            OpenAndStart(PlatformView.SurfaceTexture);
     }
 
     private sealed class SurfaceListener : Java.Lang.Object, TextureView.ISurfaceTextureListener
@@ -181,14 +148,10 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         public SurfaceListener(AhdCameraViewHandler owner) => _owner = owner;
 
         public void OnSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)
-        {
-            _owner._surface = surface;
-            _owner.EnsureStarted();
-        }
+            => _owner.OpenAndStart(surface);
 
         public bool OnSurfaceTextureDestroyed(SurfaceTexture surface)
         {
-            _owner._surface = null;
             _owner.StopPreview();
             return true;
         }
@@ -199,7 +162,6 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         public void OnSurfaceTextureUpdated(SurfaceTexture surface) { }
     }
 
-    // Mapper callbacks
     static void MapCameraId(IElementHandler h, AhdCameraView v)
     {
         var ah = (AhdCameraViewHandler)h;
@@ -217,12 +179,6 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
     {
         var ah = (AhdCameraViewHandler)h;
         ah.Restart();
-    }
-
-    static void MapIsActive(IElementHandler h, AhdCameraView v)
-    {
-        var ah = (AhdCameraViewHandler)h;
-        ah.EnsureStarted();
     }
 }
 #endif

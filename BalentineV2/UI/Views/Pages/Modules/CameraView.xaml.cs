@@ -11,7 +11,6 @@ public partial class CameraView : ContentPage
     {
         InitializeComponent();
 
-        // Placeholder kontrolü (Started/Stopped eventleri AhdCameraView'de var)
         CamLeft.Started += () => MainThread.BeginInvokeOnMainThread(() => LeftPh.IsVisible = false);
         CamLeft.Stopped += () => MainThread.BeginInvokeOnMainThread(() => LeftPh.IsVisible = true);
 
@@ -27,26 +26,6 @@ public partial class CameraView : ContentPage
         var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
         if (status != PermissionStatus.Granted)
             status = await Permissions.RequestAsync<Permissions.Camera>();
-
-        if (status != PermissionStatus.Granted)
-        {
-            ErrLbl.Text = "Kamera izni yok";
-            return;
-        }
 #endif
-
-        // En basit sabit kurulum: 0 ve 1
-        // (Gerekirse burada ID değiştirip denersin)
-        InfoLbl.Text = "2 Kamera: ID 0 ve 1";
-        ErrLbl.Text = "";
-
-        CamLeft.CameraId = 0;
-        CamRight.CameraId = 1;
-
-        CamLeft.CameraResolution = 720;
-        CamRight.CameraResolution = 720;
-
-        CamLeft.Mirror = false;
-        CamRight.Mirror = false;
     }
 }

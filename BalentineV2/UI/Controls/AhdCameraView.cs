@@ -1,6 +1,4 @@
-﻿// File: UI/Controls/AhdCameraView.cs  (sizdeki path'e göre aynı dosya)
-// Namespace: BalentineV2.UI.Controls
-
+﻿// File: UI/Controls/AhdCameraView.cs
 using System;
 using Microsoft.Maui.Controls;
 
@@ -35,18 +33,9 @@ public class AhdCameraView : View
         set => SetValue(MirrorProperty, value);
     }
 
-    // ✅ Yeni: preview aktif/pasif
-    public static readonly BindableProperty IsActiveProperty =
-        BindableProperty.Create(nameof(IsActive), typeof(bool), typeof(AhdCameraView), false);
-
-    public bool IsActive
-    {
-        get => (bool)GetValue(IsActiveProperty);
-        set => SetValue(IsActiveProperty, value);
-    }
-
     public event Action? Started;
     public event Action? Stopped;
+
     internal void OnStarted() => Started?.Invoke();
     internal void OnStopped() => Stopped?.Invoke();
 }

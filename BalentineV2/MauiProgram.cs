@@ -37,24 +37,21 @@ public static class MauiProgram
         // APP BOOTSTRAP
         // --------------------------------------------------------------------
         builder
-            .UseMauiApp<App>()
-            .UseMauiCommunityToolkit()
-            .UseMauiCommunityToolkitMediaElement()
-            .ConfigureFonts(fonts =>
-            {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-            });
-
+    .UseMauiApp<App>()
+    .ConfigureMauiHandlers(handlers =>
+    {
 #if ANDROID
-        // --------------------------------------------------------------------
-        // AHD CAMERA HANDLER REGISTRATION
-        // --------------------------------------------------------------------
-        builder.ConfigureMauiHandlers(handlers =>
-        {
-            handlers.AddHandler(typeof(AhdCameraView), typeof(AhdCameraViewHandler));
-        });
+        handlers.AddHandler(typeof(BalentineV2.UI.Controls.AhdCameraView),
+                            typeof(BalentineV2.Platforms.Android.Handlers.AhdCameraViewHandler));
 #endif
+    })
+    .UseMauiCommunityToolkit()
+    .UseMauiCommunityToolkitMediaElement()
+    .ConfigureFonts(fonts =>
+    {
+        fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+        fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+    });
 
         // --------------------------------------------------------------------
         // CORE / INFRASTRUCTURE SERVICES
