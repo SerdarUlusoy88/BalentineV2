@@ -1,123 +1,203 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+ï»¿using System.Collections.ObjectModel;
+using System.Diagnostics;
+using BalentineV2.UI.Navigation;
+using BalentineV2.UI.Views.Pages.Modules.Lamp;
+using CommunityToolkit.Maui.Views;
 
 namespace BalentineV2.UI.Views.Pages.Modules;
 
-public partial class LampView : ContentPage
+public partial class LampView : ContentPage, IActivatablePage
 {
-    // Tek aktif buton (maintained)
-    private string? _activeKey;
+    public ObservableCollection<LampItem> Items { get; } = new();
 
-    // Key -> Border map (aktif/pasif renklendirme)
-    private readonly Dictionary<string, Border> _btns = new();
+    private readonly SemaphoreSlim _gate = new(1, 1);
+    private CancellationTokenSource? _cts;
 
-    // Key -> (giris, cikis) video dosyalarý
-    private readonly Dictionary<string, (string giris, string cikis)> _videos = new()
-    {
-        ["tepe_lambasi"] = ("embed://tepe_lambasi_giris.mp4", "embed://tepe_lambasi_cikis.mp4"),
-        ["pick_up_kayar"] = ("embed://pick_up_kayar_giris.mp4", "embed://pick_up_kayar_cikis.mp4"),
-        ["ic_lamba"] = ("embed://ic_lamba_giris.mp4", "embed://ic_lamba_cikis.mp4"),
-        ["on-lamba"] = ("embed://on-lamba-giris.mp4", "embed://on-lamba-cikis.mp4"),
-        ["ust_kapak"] = ("embed://ust_kapak_giris.mp4", "embed://ust_kapak_cikis.mp4"),
-        ["arka-lamba"] = ("embed://arka-lamba-giris.mp4", "embed://arka-lamba-cikis.mp4"),
-        ["pick_up_ic_isik"] = ("embed://pick_up_ic_isik_giris.mp4", "embed://pick_up_ic_isik_cikis.mp4"),
-    };
+    // mp4 cache (Raw -> CacheDirectory)
+    private readonly Dictionary<string, string> _cached = new(StringComparer.OrdinalIgnoreCase);
+
+    private bool _active;
 
     public LampView()
     {
         InitializeComponent();
+        BindingContext = this;
 
-        // Border referanslarý (UI hazýr)
-        _btns["tepe_lambasi"] = BtnTepeLambasi;
-        _btns["pick_up_kayar"] = BtnPickUpKayar;
-        _btns["ic_lamba"] = BtnIcLamba;
-        _btns["on-lamba"] = BtnOnLamba;
-        _btns["ust_kapak"] = BtnUstKapak;
-        _btns["arka-lamba"] = BtnArkaLamba;
-        _btns["pick_up_ic_isik"] = BtnPickUpIcIsik;
-
-        // baþlangýç pasif görünüm
-        foreach (var kv in _btns)
-            SetActiveVisual(kv.Value, isActive: false);
+        foreach (var d in LampCatalog.Items)
+            Items.Add(new LampItem(d.Key, d.IconSvg, d.InMp4, d.OutMp4));
     }
 
-    protected override void OnDisappearing()
+    public Task OnActivatedAsync()
     {
-        base.OnDisappearing();
-        try { AnimVideo?.Stop(); } catch { }
-        _activeKey = null;
-
-        foreach (var kv in _btns)
-            SetActiveVisual(kv.Value, isActive: false);
+        _active = true;
+        Debug.WriteLine("[LampView] ACTIVATED");
+        return Task.CompletedTask;
     }
 
-    private async void OnButtonTapped(object? sender, TappedEventArgs e)
+    public void OnDeactivated()
     {
-        if (e.Parameter is not string key) return;
-        if (!_videos.TryGetValue(key, out var pair)) return;
+        _active = false;
+        Debug.WriteLine("[LampView] DEACTIVATED");
 
-        // ayný butona tekrar basýldý -> kapat (cikis)
-        if (string.Equals(_activeKey, key, StringComparison.OrdinalIgnoreCase))
-        {
-            _activeKey = null;
+        _cts?.Cancel();
 
-            SetActiveVisual(_btns[key], isActive: false);
+        try { AnimVideo.Stop(); } catch { }
+        try { AnimVideo.Source = null; } catch { }
 
-            await PlayAnimationAsync(pair.cikis);
-            return;
-        }
-
-        // baþka bir butona basýldý:
-        // - önce aktif olaný pasife çek (tek animasyon kuralý: mevcut videoyu durdur)
-        if (_activeKey is not null && _btns.TryGetValue(_activeKey, out var prevBtn))
-        {
-            SetActiveVisual(prevBtn, isActive: false);
-        }
-
-        _activeKey = key;
-
-        // yeni aktif görünüm
-        SetActiveVisual(_btns[key], isActive: true);
-
-        // tek animasyon: mevcut oynuyorsa durdur, yeni giris oynat
-        await PlayAnimationAsync(pair.giris);
+        // sayfadan Ã§Ä±karken gÃ¶rÃ¼nÃ¼r kalsÄ±n (sonraki giriÅŸte 1'e Ã§ekiyoruz)
+        try { AnimVideo.Opacity = 1; } catch { }
     }
 
-    private async Task PlayAnimationAsync(string source)
+    private async void OnLampTapped(object sender, TappedEventArgs e)
     {
+        if (!_active) return;
+        if (e?.Parameter is not string key) return;
+
+        var item = Items.FirstOrDefault(x => x.Key == key);
+        if (item is null) return;
+
+        await ToggleAsync(item);
+    }
+
+    private async Task ToggleAsync(LampItem item)
+    {
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        var ct = _cts.Token;
+
+        await _gate.WaitAsync(ct);
         try
         {
-            // tek animasyon: önce stop
-            try { AnimVideo?.Stop(); } catch { }
+            // off->on: giriÅŸ / on->off: Ã§Ä±kÄ±ÅŸ
+            var nextOn = !item.IsOn;
+            var file = nextOn ? item.InMp4 : item.OutMp4;
 
-            // source deðiþtir
-            AnimVideo.Source = source;
+            Debug.WriteLine($"[LampView] {item.Key} => {(nextOn ? "IN" : "OUT")} : {file}");
 
-            // autoplay bazý cihazlarda gecikmeli tetiklenebiliyor
-            await Task.Delay(80);
+            var path = await EnsureCachedAsync(file);
+            if (ct.IsCancellationRequested) return;
 
-            try { AnimVideo?.Play(); } catch { }
+            await WaitReadyAsync(ct, timeoutMs: 1200);
+            if (ct.IsCancellationRequested) return;
+
+            // Event tabanlÄ±: Opened + Ended
+            var openedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var endedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            void OnOpened(object? s, EventArgs e)
+            {
+                AnimVideo.MediaOpened -= OnOpened;
+                openedTcs.TrySetResult(true);
+            }
+
+            void OnEnded(object? s, EventArgs e)
+            {
+                AnimVideo.MediaEnded -= OnEnded;
+                endedTcs.TrySetResult(true);
+            }
+
+            AnimVideo.MediaOpened += OnOpened;
+            AnimVideo.MediaEnded += OnEnded;
+
+            // âœ… reset + source set (UI thread) + kararma maskeleme
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                if (ct.IsCancellationRequested) return;
+
+                try { AnimVideo.Stop(); } catch { }
+
+                // ðŸ”¥ Siyah frameâ€™i maskele: kÄ±sa fade-out
+                await AnimVideo.FadeTo(0, 5, Easing.CubicOut);
+
+                // 2. tÄ±k bug'Ä±nÄ± kÄ±ran reset
+                AnimVideo.Source = null;
+                await Task.Delay(25);
+
+                if (ct.IsCancellationRequested) return;
+
+                AnimVideo.Source = path;
+
+                // Burada Play yok; Ã¶nce MediaOpened bekliyoruz
+            });
+
+            // âœ… AÃ§Ä±lmayÄ± bekle
+            var opened = await Task.WhenAny(openedTcs.Task, Task.Delay(1500, ct));
+            if (ct.IsCancellationRequested) return;
+
+            if (opened != openedTcs.Task)
+            {
+                Debug.WriteLine("[LampView] MediaOpened timeout");
+                // geri gÃ¶rÃ¼nÃ¼r yapalÄ±m
+                await MainThread.InvokeOnMainThreadAsync(() => AnimVideo.FadeTo(1, 80, Easing.CubicOut));
+                return;
+            }
+
+            // âœ… AÃ§Ä±ldÄ± â†’ Ã¶nce gÃ¶rÃ¼nÃ¼r yap, sonra Play
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                if (ct.IsCancellationRequested) return;
+
+                await AnimVideo.FadeTo(1, 15, Easing.CubicOut);
+
+                try { AnimVideo.Play(); } catch { }
+            });
+
+            // âœ… BitiÅŸi bekle (tek sefer)
+            var completed = await Task.WhenAny(endedTcs.Task, Task.Delay(4000, ct));
+            if (ct.IsCancellationRequested) return;
+
+            if (completed != endedTcs.Task)
+            {
+                Debug.WriteLine("[LampView] MediaEnded timeout");
+                return;
+            }
+
+            // âœ… State commit
+            item.IsOn = nextOn;
         }
-        catch
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
         {
-            // sessiz
+            Debug.WriteLine($"[LampView] ToggleAsync ERROR: {ex}");
+        }
+        finally
+        {
+            if (_gate.CurrentCount == 0) _gate.Release();
         }
     }
 
-    private static void SetActiveVisual(Border b, bool isActive)
+    private async Task<string> EnsureCachedAsync(string fileName)
     {
-        if (isActive)
+        if (_cached.TryGetValue(fileName, out var existing) && File.Exists(existing))
+            return existing;
+
+        var target = Path.Combine(FileSystem.Current.CacheDirectory, fileName);
+
+        if (!File.Exists(target))
         {
-            b.Stroke = Color.FromArgb("#F5A623");        // sarý
-            b.BackgroundColor = Color.FromArgb("#2A2416"); // koyu sarýmsý
-            b.StrokeThickness = 2;
+            using var s = await FileSystem.Current.OpenAppPackageFileAsync(fileName);
+            using var fs = File.Create(target);
+            await s.CopyToAsync(fs);
         }
-        else
+
+        _cached[fileName] = target;
+        return target;
+    }
+
+    private async Task WaitReadyAsync(CancellationToken ct, int timeoutMs)
+    {
+        var sw = Stopwatch.StartNew();
+        while (sw.ElapsedMilliseconds < timeoutMs && !ct.IsCancellationRequested)
         {
-            b.Stroke = Color.FromArgb("#D7D7D7");
-            b.BackgroundColor = Color.FromArgb("#1A1A1A");
-            b.StrokeThickness = 1;
+            var ok = await MainThread.InvokeOnMainThreadAsync(() =>
+                AnimVideo.Handler is not null &&
+                AnimVideo.Width > 0 &&
+                AnimVideo.Height > 0 &&
+                AnimVideo.IsVisible);
+
+            if (ok) return;
+
+            await Task.Delay(60, ct);
         }
     }
 }

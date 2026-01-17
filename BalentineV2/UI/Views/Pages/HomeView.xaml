@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
-    x:Class="BalentineV2.UI.Views.Pages.HomeView"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    BackgroundColor="#111">
-
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="BalentineV2.UI.Views.Pages.HomeView"
+             BackgroundColor="Black">
     <Grid>
-        <toolkit:MediaElement
-    x:Name="BgVideo"
-    Source="embed://home_bg.mp4"
-    ShouldShowPlaybackControls="false"
-    ShouldAutoPlay="True"
-    Aspect="AspectFill"
-    Volume="0" />
-
+        <toolkit:MediaElement x:Name="BgVideo"
+                              ShouldShowPlaybackControls="False"
+                              ShouldAutoPlay="False"
+                              ShouldLoopPlayback="False"
+                              Aspect="AspectFill"
+                              HorizontalOptions="Fill"
+                              VerticalOptions="Fill"
+                              Volume="0.0" />
     </Grid>
 </ContentPage>

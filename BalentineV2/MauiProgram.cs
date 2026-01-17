@@ -17,9 +17,9 @@ using BalentineV2.UI.Views.Pages;
 using BalentineV2.UI.Views.Pages.Modules;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
-
-// 🔴 EK: AHD Camera control + handler
 using BalentineV2.UI.Controls;
+
+// DİKKAT: "using LibVLCSharp..." BURADAN SİLİNDİ.
 
 #if ANDROID
 using BalentineV2.Platforms.Android.Handlers;
@@ -33,86 +33,53 @@ public static class MauiProgram
     {
         var builder = MauiApp.CreateBuilder();
 
-        // --------------------------------------------------------------------
-        // APP BOOTSTRAP
-        // --------------------------------------------------------------------
         builder
-    .UseMauiApp<App>()
-    .ConfigureMauiHandlers(handlers =>
-    {
+            .UseMauiApp<App>()
+            .ConfigureMauiHandlers(handlers =>
+            {
 #if ANDROID
-        handlers.AddHandler(typeof(BalentineV2.UI.Controls.AhdCameraView),
-                            typeof(BalentineV2.Platforms.Android.Handlers.AhdCameraViewHandler));
+                handlers.AddHandler(typeof(BalentineV2.UI.Controls.AhdCameraView),
+                                    typeof(BalentineV2.Platforms.Android.Handlers.AhdCameraViewHandler));
 #endif
-    })
-    .UseMauiCommunityToolkit()
-    .UseMauiCommunityToolkitMediaElement()
-    .ConfigureFonts(fonts =>
-    {
-        fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-        fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-    });
+            })
+            .UseMauiCommunityToolkit()
+            .UseMauiCommunityToolkitMediaElement() // Bu kalabilir, zararı yok.
+                                                   // .UseLibVLCSharp()  <-- İŞTE HATAYI YAPAN SATIR BU! BUNU SİLDİK.
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            });
 
-        // --------------------------------------------------------------------
-        // CORE / INFRASTRUCTURE SERVICES
-        // --------------------------------------------------------------------
-
-        // Feature Config (Module enable/disable vb.)
+        // --- SERVİSLER ---
         builder.Services.AddSingleton<IFeatureConfigStore, FeatureConfigStore>();
         builder.Services.AddSingleton<IFeatureConfigService, FeatureConfigService>();
-
-        // Menu provider
         builder.Services.AddSingleton<IMenuProvider, MenuProvider>();
-
-        // Status bar chip provider
         builder.Services.AddSingleton<IStatusBarProvider, StatusBarProvider>();
-
-        // Localization
         builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
         builder.Services.AddSingleton<Loc>();
         builder.Services.AddSingleton<ITextProvider, ResxTextProvider>();
-
-        // --------------------------------------------------------------------
-        // NAVIGATION
-        // --------------------------------------------------------------------
         builder.Services.AddSingleton<RouteMap>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
-
-        // IconRail state
         builder.Services.AddSingleton<IRailStateService, RailStateService>();
-
-        // --------------------------------------------------------------------
-        // APP SETTINGS (GLOBAL)
-        // --------------------------------------------------------------------
         builder.Services.AddSingleton<IAppSettingsStore, AppSettingsStore>();
 
-        // --------------------------------------------------------------------
-        // UI - COMPONENTS
-        // --------------------------------------------------------------------
-        builder.Services.AddTransient<IconRailView>();
-        builder.Services.AddTransient<TopStatusBarView>();
+        // --- SAYFALAR & GÖRÜNÜMLER ---
+        builder.Services.AddSingleton<IconRailView>();
+        builder.Services.AddSingleton<TopStatusBarView>();
         builder.Services.AddTransient<LanguageSelectorView>();
+        builder.Services.AddSingleton<MainLayout>();
+        builder.Services.AddSingleton<SettingsView>();
 
-        // --------------------------------------------------------------------
-        // UI - LAYOUT
-        // --------------------------------------------------------------------
-        builder.Services.AddTransient<MainLayout>();
-
-        // --------------------------------------------------------------------
-        // UI - PAGES
-        // --------------------------------------------------------------------
-        builder.Services.AddTransient<SettingsView>();
-
-        // Modules
-        builder.Services.AddTransient<HomeView>();
-        builder.Services.AddTransient<MonitoringView>();
-        builder.Services.AddTransient<FanView>();
-        builder.Services.AddTransient<HumidityView>();
-        builder.Services.AddTransient<CameraView>();
-        builder.Services.AddTransient<LampView>();
-        builder.Services.AddTransient<ScaleView>();
-        builder.Services.AddTransient<HydraulicView>();
-        builder.Services.AddTransient<LubricationView>();
+        builder.Services.AddSingleton<HomeView>(); // Video burada
+        builder.Services.AddSingleton<MonitoringView>();
+        builder.Services.AddSingleton<FanView>();
+        builder.Services.AddSingleton<HumidityView>();
+        builder.Services.AddSingleton<CameraView>();
+        builder.Services.AddSingleton<LampView>();
+        builder.Services.AddSingleton<ScaleView>();
+        builder.Services.AddSingleton<HydraulicView>();
+        builder.Services.AddSingleton<LubricationView>();
 
 #if DEBUG
         builder.Logging.AddDebug();

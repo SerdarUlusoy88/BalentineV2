@@ -1,197 +1,99 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
-    x:Class="BalentineV2.UI.Views.Pages.Modules.LampView"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    Title="Lamp"
-    BackgroundColor="#111">
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="BalentineV2.UI.Views.Pages.Modules.LampView"
+             BackgroundColor="#111">
 
-    <!-- 2 katman:
-         1) Arka plan (şimdilik boş)
-         2) Animasyon video overlay (tek MediaElement)
-         3) Sağ ikon rail (maintained butonlar)
-    -->
     <Grid>
 
-        <!-- Arka plan alanı (ileride resim/video konulabilir) -->
-        <Grid />
+        <!-- A/B video -->
+        <toolkit:MediaElement x:Name="AnimVideo"
+                              ShouldShowPlaybackControls="False"
+                              ShouldAutoPlay="False"
+                              ShouldLoopPlayback="False"
+                              Aspect="AspectFill"
+                              HorizontalOptions="Fill"
+                              VerticalOptions="Fill"
+                              Volume="0.0"
+                              Opacity="1" />
 
-        <!-- Tek animasyon oynatıcı (overlay) -->
-        <toolkit:MediaElement
-            x:Name="AnimVideo"
-            Source=""
-            ShouldShowPlaybackControls="false"
-            ShouldAutoPlay="false"
-            Aspect="AspectFit"
-            Volume="0"
-            ZIndex="5" />
+        <toolkit:MediaElement x:Name="PlayerB"
+                              ShouldShowPlaybackControls="False"
+                              ShouldAutoPlay="False"
+                              ShouldLoopPlayback="False"
+                              Aspect="AspectFill"
+                              HorizontalOptions="Fill"
+                              VerticalOptions="Fill"
+                              Volume="0.0"
+                              Opacity="0" />
 
-        <!-- Sağ ikon bar -->
-        <Grid
-            ColumnDefinitions="*,92"
-            ZIndex="10">
+        <!-- Sağ ikon rail: TopBar–Footer arası (daha yukarı + daha sıkı) -->
+        <Grid HorizontalOptions="End"
+      VerticalOptions="Fill"
+      Margin="0,65,18,95"
+      WidthRequest="72">
 
-            <!-- Sol boş alan -->
-            <Grid Grid.Column="0" />
+            <CollectionView ItemsSource="{Binding Items}"
+                    SelectionMode="None"
+                    VerticalOptions="Start"
+                    Margin="0,0,0,0">
 
-            <!-- Sağ rail -->
-            <Grid
-                Grid.Column="1"
-                Padding="12,18"
-                RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
-                RowSpacing="12"
-                VerticalOptions="Center"
-                HorizontalOptions="End">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical"
+                               ItemSpacing="8" />
+                </CollectionView.ItemsLayout>
 
-                <!-- 1) tepe_lambasi -->
-                <Border
-                    x:Name="BtnTepeLambasi"
-                    Stroke="#D7D7D7"
-                    StrokeThickness="1"
-                    BackgroundColor="#1A1A1A"
-                    StrokeShape="RoundRectangle 14"
-                    HeightRequest="62"
-                    WidthRequest="62">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnButtonTapped" CommandParameter="tepe_lambasi" />
-                    </Border.GestureRecognizers>
-                    <Image
-                        Source="tepe_lambasi.svg"
-                        HeightRequest="28"
-                        WidthRequest="28"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center" />
-                </Border>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <!-- ✅ item dikey boşluk minimum -->
+                        <Grid Margin="0,0">
 
-                <!-- 2) pick_up_kayar -->
-                <Border
-                    x:Name="BtnPickUpKayar"
-                    Grid.Row="1"
-                    Stroke="#D7D7D7"
-                    StrokeThickness="1"
-                    BackgroundColor="#1A1A1A"
-                    StrokeShape="RoundRectangle 14"
-                    HeightRequest="62"
-                    WidthRequest="62">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnButtonTapped" CommandParameter="pick_up_kayar" />
-                    </Border.GestureRecognizers>
-                    <Image
-                        Source="pick_up_kayar.svg"
-                        HeightRequest="28"
-                        WidthRequest="28"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center" />
-                </Border>
+                            <!-- 1) Beyaz ikon (off) -->
+                            <Image Source="{Binding IconSvg}"
+                           WidthRequest="40"
+                           HeightRequest="40"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center">
+                                <Image.Behaviors>
+                                    <toolkit:IconTintColorBehavior TintColor="White" />
+                                </Image.Behaviors>
+                                <Image.Triggers>
+                                    <DataTrigger TargetType="Image" Binding="{Binding IsOn}" Value="True">
+                                        <Setter Property="Opacity" Value="0" />
+                                    </DataTrigger>
+                                </Image.Triggers>
+                            </Image>
 
-                <!-- 3) ic_lamba -->
-                <Border
-                    x:Name="BtnIcLamba"
-                    Grid.Row="2"
-                    Stroke="#D7D7D7"
-                    StrokeThickness="1"
-                    BackgroundColor="#1A1A1A"
-                    StrokeShape="RoundRectangle 14"
-                    HeightRequest="62"
-                    WidthRequest="62">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnButtonTapped" CommandParameter="ic_lamba" />
-                    </Border.GestureRecognizers>
-                    <Image
-                        Source="ic_lamba.svg"
-                        HeightRequest="28"
-                        WidthRequest="28"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center" />
-                </Border>
+                            <!-- 2) Sarı ikon (on) -->
+                            <Image Source="{Binding IconSvg}"
+                           WidthRequest="40"
+                           HeightRequest="40"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           Opacity="0">
+                                <Image.Behaviors>
+                                    <toolkit:IconTintColorBehavior TintColor="#F6A821" />
+                                </Image.Behaviors>
+                                <Image.Triggers>
+                                    <DataTrigger TargetType="Image" Binding="{Binding IsOn}" Value="True">
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                </Image.Triggers>
+                            </Image>
 
-                <!-- 4) on-lamba -->
-                <Border
-                    x:Name="BtnOnLamba"
-                    Grid.Row="3"
-                    Stroke="#D7D7D7"
-                    StrokeThickness="1"
-                    BackgroundColor="#1A1A1A"
-                    StrokeShape="RoundRectangle 14"
-                    HeightRequest="62"
-                    WidthRequest="62">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnButtonTapped" CommandParameter="on-lamba" />
-                    </Border.GestureRecognizers>
-                    <Image
-                        Source="on-lamba.svg"
-                        HeightRequest="28"
-                        WidthRequest="28"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center" />
-                </Border>
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLampTapped"
+                                              CommandParameter="{Binding Key}" />
+                            </Grid.GestureRecognizers>
 
-                <!-- 5) ust_kapak-05 -->
-                <Border
-                    x:Name="BtnUstKapak"
-                    Grid.Row="4"
-                    Stroke="#D7D7D7"
-                    StrokeThickness="1"
-                    BackgroundColor="#1A1A1A"
-                    StrokeShape="RoundRectangle 14"
-                    HeightRequest="62"
-                    WidthRequest="62">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnButtonTapped" CommandParameter="ust_kapak" />
-                    </Border.GestureRecognizers>
-                    <Image
-                        Source="ust_kapak-05.svg"
-                        HeightRequest="28"
-                        WidthRequest="28"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center" />
-                </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
-                <!-- 6) arka-lamba -->
-                <Border
-                    x:Name="BtnArkaLamba"
-                    Grid.Row="5"
-                    Stroke="#D7D7D7"
-                    StrokeThickness="1"
-                    BackgroundColor="#1A1A1A"
-                    StrokeShape="RoundRectangle 14"
-                    HeightRequest="62"
-                    WidthRequest="62">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnButtonTapped" CommandParameter="arka-lamba" />
-                    </Border.GestureRecognizers>
-                    <Image
-                        Source="arka-lamba.svg"
-                        HeightRequest="28"
-                        WidthRequest="28"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center" />
-                </Border>
-
-                <!-- 7) pick_up_ic_isik -->
-                <Border
-                    x:Name="BtnPickUpIcIsik"
-                    Grid.Row="6"
-                    Stroke="#D7D7D7"
-                    StrokeThickness="1"
-                    BackgroundColor="#1A1A1A"
-                    StrokeShape="RoundRectangle 14"
-                    HeightRequest="62"
-                    WidthRequest="62">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnButtonTapped" CommandParameter="pick_up_ic_isik" />
-                    </Border.GestureRecognizers>
-                    <Image
-                        Source="pick_up_ic_isik.svg"
-                        HeightRequest="28"
-                        WidthRequest="28"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center" />
-                </Border>
-
-            </Grid>
         </Grid>
+
 
     </Grid>
 </ContentPage>
