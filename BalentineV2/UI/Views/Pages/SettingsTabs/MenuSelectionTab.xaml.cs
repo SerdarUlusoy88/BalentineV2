@@ -1,5 +1,4 @@
-﻿// File: UI/Views/Pages/SettingsTabs/MenuSelectionTab.xaml.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.ApplicationModel;
@@ -15,8 +14,15 @@ public partial class MenuSelectionTab : ContentView
     private Color _enabledText;
     private Color _disabledText;
 
+    private Color _accent;
+    private Color _line;
+
     // ✅ Her satır için 1 kere label cache
     private readonly Dictionary<Grid, List<Label>> _rowLabels = new();
+
+    // ✅ Buton cache
+    private readonly Dictionary<string, (Button add, Button remove)> _buttons =
+        new(StringComparer.OrdinalIgnoreCase);
 
     public MenuSelectionTab()
     {
@@ -34,8 +40,14 @@ public partial class MenuSelectionTab : ContentView
         _enabledText = GetColorOrFallback("ST_Text", Colors.White);
         _disabledText = GetColorOrFallback("ST_TextDim", Colors.Gray);
 
-        // ✅ Label cache'i 1 kez hazırla (donmayı azaltır)
+        _accent = GetColorOrFallback("ST_Accent", Colors.Gold);
+        _line = GetColorOrFallback("ST_Line", Colors.LightGray);
+
+        // ✅ Label cache'i 1 kez hazırla
         BuildRowCachesOnce();
+
+        // ✅ button cache (x:Name ile)
+        BuildButtonCachesOnce();
 
         if (_features is not null)
             _features.Changed += OnFeaturesChanged;
@@ -79,25 +91,83 @@ public partial class MenuSelectionTab : ContentView
 
     private void ApplyState(FeatureConfig cfg)
     {
-        SetRowState(Row_Monitoring, cfg.Monitoring);
-        SetRowState(Row_Fan, cfg.Fan);
-        SetRowState(Row_Humidity, cfg.Humidity);
-        SetRowState(Row_Camera, cfg.Camera);
+        SetRowState("monitoring", Row_Monitoring, cfg.Monitoring);
+        SetRowState("fan", Row_Fan, cfg.Fan);
+        SetRowState("humidity", Row_Humidity, cfg.Humidity);
+        SetRowState("camera", Row_Camera, cfg.Camera);
 
-        SetRowState(Row_Lamp, cfg.Lamp);
-        SetRowState(Row_Scale, cfg.Scale);
-        SetRowState(Row_Hydraulic, cfg.Hydraulic);
-        SetRowState(Row_Lubrication, cfg.Lubrication);
+        SetRowState("lamp", Row_Lamp, cfg.Lamp);
+        SetRowState("scale", Row_Scale, cfg.Scale);
+        SetRowState("hydraulic", Row_Hydraulic, cfg.Hydraulic);
+        SetRowState("lubrication", Row_Lubrication, cfg.Lubrication);
     }
 
-    private void SetRowState(Grid row, bool enabled)
+    private void SetRowState(string key, Grid row, bool enabled)
     {
-        if (!_rowLabels.TryGetValue(row, out var labels))
-            return;
+        // labels
+        if (_rowLabels.TryGetValue(row, out var labels))
+        {
+            var c = enabled ? _enabledText : _disabledText;
+            for (int i = 0; i < labels.Count; i++)
+                labels[i].TextColor = c;
+        }
 
-        var c = enabled ? _enabledText : _disabledText;
-        for (int i = 0; i < labels.Count; i++)
-            labels[i].TextColor = c;
+        // buttons highlight (no background fill)
+        if (_buttons.TryGetValue(key, out var pair))
+        {
+            // Enabled ise: remove (X) sarı — çünkü "çıkar" aksiyonu daha anlamlıdır
+            // Disabled ise: add (+) sarı — çünkü "ekle" aksiyonu gerekir
+            ApplyButtonHighlight(pair.add, pair.remove, enabled);
+        }
+    }
+
+    private void ApplyButtonHighlight(Button add, Button remove, bool enabled)
+    {
+        // asla dolgu yok
+        add.BackgroundColor = Colors.Transparent;
+        remove.BackgroundColor = Colors.Transparent;
+
+        // “beyaz” olarak ST_Text kullanıyoruz
+        var white = _enabledText;
+
+        if (enabled)
+        {
+            // ✅ Menü VAR: Ekle sarı, Çıkar beyaz
+            add.BorderColor = _accent;
+            add.TextColor = _accent;
+            add.Opacity = 1.0;
+
+            remove.BorderColor = _line;
+            remove.TextColor = white;
+            remove.Opacity = 0.85;
+        }
+        else
+        {
+            // ✅ Menü YOK: Çıkar sarı, Ekle beyaz
+            remove.BorderColor = _accent;
+            remove.TextColor = _accent;
+            remove.Opacity = 1.0;
+
+            add.BorderColor = _line;
+            add.TextColor = white;
+            add.Opacity = 0.85;
+        }
+    }
+
+
+    private void BuildButtonCachesOnce()
+    {
+        _buttons.Clear();
+
+        _buttons["monitoring"] = (BtnAdd_monitoring, BtnRemove_monitoring);
+        _buttons["fan"] = (BtnAdd_fan, BtnRemove_fan);
+        _buttons["humidity"] = (BtnAdd_humidity, BtnRemove_humidity);
+        _buttons["camera"] = (BtnAdd_camera, BtnRemove_camera);
+
+        _buttons["lamp"] = (BtnAdd_lamp, BtnRemove_lamp);
+        _buttons["scale"] = (BtnAdd_scale, BtnRemove_scale);
+        _buttons["hydraulic"] = (BtnAdd_hydraulic, BtnRemove_hydraulic);
+        _buttons["lubrication"] = (BtnAdd_lubrication, BtnRemove_lubrication);
     }
 
     private void BuildRowCachesOnce()
@@ -122,7 +192,7 @@ public partial class MenuSelectionTab : ContentView
         _rowLabels[row] = list;
     }
 
-    // ✅ IView üzerinden güvenli traversal (CS1503 biter)
+    // ✅ IView üzerinden güvenli traversal
     private void CollectLabels(IView root, List<Label> acc)
     {
         if (root is Label lbl)

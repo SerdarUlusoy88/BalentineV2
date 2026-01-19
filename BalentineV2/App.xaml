@@ -6,7 +6,13 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+
+                <!-- Genel stiller -->
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+
+                <!-- ✅ Settings tab stilleri (Release crash + parse jank fix) -->
+                <ResourceDictionary Source="UI/Views/Pages/SettingsTabs/SettingsTabStyles.xaml" />
+
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

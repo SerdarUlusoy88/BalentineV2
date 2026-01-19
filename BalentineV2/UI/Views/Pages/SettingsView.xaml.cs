@@ -1,5 +1,5 @@
-﻿// File: UI/Views/Pages/SettingsView.xaml.cs
-using System;
+﻿using System;
+using System.Threading;
 using Microsoft.Maui.Controls;
 
 using BalentineV2.UI.Views.Pages.SettingsTabs;
@@ -33,19 +33,57 @@ public partial class SettingsView : ContentPage
 
     private bool _isSwapping;
 
+    // ✅ Swap cancel (hizli tıklamada son seçime sadık kal)
+    private CancellationTokenSource? _swapCts;
+
+    // ✅ Prewarm 1 kez
+    private bool _prewarmed;
+
+    // ✅ Resource cache (lookup maliyetini düşürür)
+    private Color _accent;
+    private Color _normal;
+    private Color _dim;
+
     public SettingsView()
     {
         InitializeComponent();
 
-        // ✅ İlk açılışta UI çizilsin, sonra içerik bas (ilk geçiş kasmasını azaltır)
+        CacheColors();
+
+        // ✅ İlk açılışta UI çizilsin, sonra içerik bas
         Dispatcher.Dispatch(() =>
         {
             ApplyTabColors();
             TabContentHost.Content = Connection;
         });
+    }
 
-        // İstersen (opsiyonel) Menü tabını hafif pre-warm:
-        // Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(250), () => _menuSelectionTab ??= new MenuSelectionTab());
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        // ✅ tabları sırayla ısıt (UI donmasın)
+        if (_prewarmed) return;
+        _prewarmed = true;
+
+        // Hafiften ağıra doğru (senin projede en ağır genelde Camera/Machine/Pressure)
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(150), () => _menuSelectionTab ??= new MenuSelectionTab());
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(320), () => _cameraTab ??= new CameraTab());
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(520), () => _pressureTab ??= new PressureCalibrationTab());
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(720), () => _machineTab ??= new MachineInfoTab());
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(920), () => _logsTab ??= new LogsTab());
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(1120), () => _dataResetTab ??= new DataResetTab());
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(1320), () => _scaleTab ??= new ScaleCalibrationTab());
+        // Connection genelde hafif ama Entry/keyboard init bazen jank yapar; en sona koymak daha stabil
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(1520), () => _connectionTab ??= new ConnectionTab());
+    }
+
+    private void CacheColors()
+    {
+        // Global dictionary’ye aldığımız için Resources burada hep bulunacak
+        _accent = (Color)Application.Current!.Resources["ST_Accent"];
+        _normal = (Color)Application.Current!.Resources["ST_Text"];
+        _dim = (Color)Application.Current!.Resources["ST_TextDim"];
     }
 
     private void OnTabBaglanti(object sender, EventArgs e) => SelectTab(TabKey.Baglanti);
@@ -60,19 +98,28 @@ public partial class SettingsView : ContentPage
     private void SelectTab(TabKey tab)
     {
         if (_active == tab) return;
-        if (_isSwapping) return; // ✅ hızlı tıklamada üst üste swap olmasın
+        if (_isSwapping) return;
 
         _active = tab;
         ApplyTabColors();
 
         _isSwapping = true;
 
-        // ✅ Hemen ağır tabı basma: önce küçük bir placeholder göster
+        _swapCts?.Cancel();
+        _swapCts = new CancellationTokenSource();
+        var ct = _swapCts.Token;
+
         TabContentHost.Content = BuildLoadingPlaceholder();
 
         // ✅ 1 tick sonraya bırak: UI thread nefes alsın
         Dispatcher.Dispatch(() =>
         {
+            if (ct.IsCancellationRequested)
+            {
+                _isSwapping = false;
+                return;
+            }
+
             try
             {
                 TabContentHost.Content = tab switch
@@ -97,9 +144,7 @@ public partial class SettingsView : ContentPage
 
     private View BuildLoadingPlaceholder()
     {
-        // ✅ Lightweight placeholder (layout hesaplaması çok ucuz)
-        var textColor = (Color)Resources["ST_TextDim"];
-
+        // ✅ super lightweight placeholder
         return new Grid
         {
             VerticalOptions = LayoutOptions.Fill,
@@ -109,7 +154,7 @@ public partial class SettingsView : ContentPage
                 new Label
                 {
                     Text = "Yükleniyor...",
-                    TextColor = textColor,
+                    TextColor = _dim,
                     FontSize = 13,
                     HorizontalOptions = LayoutOptions.Center,
                     VerticalOptions = LayoutOptions.Center
@@ -120,22 +165,19 @@ public partial class SettingsView : ContentPage
 
     private void ApplyTabColors()
     {
-        var accent = (Color)Resources["ST_Accent"];
-        var normal = (Color)Resources["ST_Text"];
-
-        SetTab(T_Baglanti, _active == TabKey.Baglanti, accent, normal);
-        SetTab(T_Menu, _active == TabKey.Menu, accent, normal);
-        SetTab(T_Kamera, _active == TabKey.Kamera, accent, normal);
-        SetTab(T_Basinc, _active == TabKey.Basinc, accent, normal);
-        SetTab(T_Kayitlar, _active == TabKey.Kayitlar, accent, normal);
-        SetTab(T_Makine, _active == TabKey.Makine, accent, normal);
-        SetTab(T_Veri, _active == TabKey.Veri, accent, normal);
-        SetTab(T_Tarti, _active == TabKey.Tarti, accent, normal);
+        SetTab(T_Baglanti, _active == TabKey.Baglanti);
+        SetTab(T_Menu, _active == TabKey.Menu);
+        SetTab(T_Kamera, _active == TabKey.Kamera);
+        SetTab(T_Basinc, _active == TabKey.Basinc);
+        SetTab(T_Kayitlar, _active == TabKey.Kayitlar);
+        SetTab(T_Makine, _active == TabKey.Makine);
+        SetTab(T_Veri, _active == TabKey.Veri);
+        SetTab(T_Tarti, _active == TabKey.Tarti);
     }
 
-    private static void SetTab(Label lbl, bool active, Color accent, Color normal)
+    private void SetTab(Label lbl, bool active)
     {
-        lbl.TextColor = active ? accent : normal;
+        lbl.TextColor = active ? _accent : _normal;
         lbl.Opacity = active ? 1.0 : 0.85;
     }
 }

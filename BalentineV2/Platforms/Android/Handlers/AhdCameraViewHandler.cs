@@ -2,11 +2,14 @@
 // File: Platforms/Android/Handlers/AhdCameraViewHandler.cs
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using global::Android.Graphics;
 using global::Android.Views;
 using Microsoft.Maui;
 using Microsoft.Maui.Handlers;
+
 using BalentineV2.UI.Controls;
+
 using Camera1 = global::Android.Hardware.Camera;
 
 namespace BalentineV2.Platforms.Android.Handlers;
@@ -31,6 +34,9 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
     private int _cameraId;
     private SurfaceListener? _listener;
 
+    // Mirror'ı ilk frame geldikten sonra bir kez daha uygula (TextureView resetleyebiliyor)
+    private bool _pendingMirrorKick;
+
     protected override TextureView CreatePlatformView()
     {
         var tv = new TextureView(Context);
@@ -42,9 +48,16 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
     protected override void ConnectHandler(TextureView platformView)
     {
         base.ConnectHandler(platformView);
+
         _cameraId = VirtualView.CameraId;
 
-        // Eğer view zaten hazırsa direkt başlat
+        if (_cameraId < 0)
+        {
+            StopPreview();
+            ApplyMirror(); // reset
+            return;
+        }
+
         if (platformView.IsAvailable && platformView.SurfaceTexture != null)
             OpenAndStart(platformView.SurfaceTexture);
     }
@@ -52,27 +65,46 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
     protected override void DisconnectHandler(TextureView platformView)
     {
         StopPreview();
-        if (platformView != null) platformView.SurfaceTextureListener = null;
+
+        if (platformView != null)
+            platformView.SurfaceTextureListener = null;
+
         _listener = null;
+
         base.DisconnectHandler(platformView);
     }
 
     private void OpenAndStart(SurfaceTexture surface)
     {
+        if (_cameraId < 0)
+        {
+            StopPreview();
+            ApplyMirror();
+            return;
+        }
+
         try
         {
             StopPreview();
 
             _camera = Camera1.Open(_cameraId);
-            if (_camera is null) throw new Exception("Camera.Open returned null");
+            if (_camera is null)
+                throw new Exception("Camera.Open returned null");
 
             ApplyParameters(_camera);
+
             _camera.SetPreviewTexture(surface);
             _camera.StartPreview();
             _isPreviewing = true;
 
+            // ✅ preview başladıktan sonra mirror yeniden uygulanacak
+            _pendingMirrorKick = true;
+
             ApplyMirror();
             VirtualView.OnStarted();
+
+            // ✅ bazı cihazlarda StartPreview sonrası 1-2 tick gerekir
+            ScheduleMirrorApply();
         }
         catch (Exception ex)
         {
@@ -103,18 +135,42 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
     {
         if (PlatformView == null) return;
 
-        if (!VirtualView.Mirror)
+        MainThread.BeginInvokeOnMainThread(() =>
         {
+            if (PlatformView == null) return;
+
+            if (!VirtualView.Mirror)
+            {
+                // reset
+                PlatformView.SetTransform(null);
+                PlatformView.RotationY = 0f;
+                PlatformView.ScaleX = 1f;
+                return;
+            }
+
+            // ✅ EN GARANTİ: GPU ile Y ekseninde çevir
+            // (TextureView transform/ScaleX bazı cihazlarda preview'a etki etmiyor)
             PlatformView.SetTransform(null);
-            return;
-        }
+            PlatformView.ScaleX = 1f;
+            PlatformView.RotationY = 180f;
+        });
+    }
 
-        var w = PlatformView.Width <= 0 ? 1 : PlatformView.Width;
-        var h = PlatformView.Height <= 0 ? 1 : PlatformView.Height;
 
-        var m = new Matrix();
-        m.SetScale(-1, 1, w / 2f, h / 2f);
-        PlatformView.SetTransform(m);
+    private void ScheduleMirrorApply()
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                // iki kez dene (StartPreview sonrası reset olabiliyor)
+                await Task.Delay(60);
+                ApplyMirror();
+                await Task.Delay(140);
+                ApplyMirror();
+            }
+            catch { }
+        });
     }
 
     private void StopPreview()
@@ -133,11 +189,19 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         {
             try { _camera?.Release(); } catch { }
             _camera = null;
+            _pendingMirrorKick = false;
         }
     }
 
     private void Restart()
     {
+        if (_cameraId < 0)
+        {
+            StopPreview();
+            ApplyMirror();
+            return;
+        }
+
         if (PlatformView?.IsAvailable == true && PlatformView.SurfaceTexture != null)
             OpenAndStart(PlatformView.SurfaceTexture);
     }
@@ -148,7 +212,10 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         public SurfaceListener(AhdCameraViewHandler owner) => _owner = owner;
 
         public void OnSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)
-            => _owner.OpenAndStart(surface);
+        {
+            if (_owner._cameraId < 0) return;
+            _owner.OpenAndStart(surface);
+        }
 
         public bool OnSurfaceTextureDestroyed(SurfaceTexture surface)
         {
@@ -159,23 +226,42 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         public void OnSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height)
             => _owner.ApplyMirror();
 
-        public void OnSurfaceTextureUpdated(SurfaceTexture surface) { }
+        public void OnSurfaceTextureUpdated(SurfaceTexture surface)
+        {
+            // ✅ ilk frame geldikten sonra TextureView bazen transformu sıfırlar → bir kere kick
+            if (_owner._pendingMirrorKick)
+            {
+                _owner._pendingMirrorKick = false;
+                _owner.ApplyMirror();
+            }
+        }
     }
 
-    static void MapCameraId(IElementHandler h, AhdCameraView v)
+    private static void MapCameraId(IElementHandler h, AhdCameraView v)
     {
         var ah = (AhdCameraViewHandler)h;
         ah._cameraId = v.CameraId;
+
+        if (ah._cameraId < 0)
+        {
+            ah.StopPreview();
+            ah.ApplyMirror();
+            return;
+        }
+
         ah.Restart();
     }
 
-    static void MapMirror(IElementHandler h, AhdCameraView v)
+    private static void MapMirror(IElementHandler h, AhdCameraView v)
     {
         var ah = (AhdCameraViewHandler)h;
+
+        // ✅ Mirror değişince bazen tek apply yetmez
         ah.ApplyMirror();
+        ah.ScheduleMirrorApply();
     }
 
-    static void MapResolution(IElementHandler h, AhdCameraView v)
+    private static void MapResolution(IElementHandler h, AhdCameraView v)
     {
         var ah = (AhdCameraViewHandler)h;
         ah.Restart();

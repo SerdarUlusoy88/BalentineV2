@@ -170,4 +170,36 @@
 	  <Folder Include="Platforms\Android\Assets\" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <AndroidNativeLibrary Remove="C:\Users\serda\.nuget\packages\videolan.libvlc.android\3.6.5\build\android-x86\libvlc.so" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AndroidNativeLibrary Remove="C:\Users\serda\.nuget\packages\videolan.libvlc.android\3.6.5\build\android-x86\libc++_shared.so" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AndroidNativeLibrary Remove="C:\Users\serda\.nuget\packages\videolan.libvlc.android\3.6.5\build\android-armv8\libvlc.so" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AndroidNativeLibrary Remove="C:\Users\serda\.nuget\packages\videolan.libvlc.android\3.6.5\build\android-armv8\libc++_shared.so" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AndroidNativeLibrary Remove="C:\Users\serda\.nuget\packages\videolan.libvlc.android\3.6.5\build\android-armv7\libvlc.so" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AndroidNativeLibrary Remove="C:\Users\serda\.nuget\packages\videolan.libvlc.android\3.6.5\build\android-armv7\libc++_shared.so" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AndroidNativeLibrary Remove="C:\Users\serda\.nuget\packages\videolan.libvlc.android\3.6.5\build\android-x86_64\libvlc.so" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AndroidNativeLibrary Remove="C:\Users\serda\.nuget\packages\videolan.libvlc.android\3.6.5\build\android-x86_64\libc++_shared.so" />
+	</ItemGroup>
+
 </Project>

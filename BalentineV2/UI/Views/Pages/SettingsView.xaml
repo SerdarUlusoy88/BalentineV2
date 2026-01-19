@@ -8,17 +8,7 @@
     <ContentPage.Resources>
         <ResourceDictionary>
 
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="SettingsTabs/SettingsTabStyles.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-
-            <!-- Sabit offset mantığı:
-                 Left: IconRail açık genişlik (örn 260) + biraz boşluk
-                 Top : TopStatusBar + boşluk
-                 Right: genel boşluk
-                 Bottom: Footer bandı için rezerv (logo + padding) -->
-            <Thickness x:Key="SettingsInset">120,90,24,80</Thickness>
-
+            <!-- Panel tonları -->
             <Color x:Key="PanelBg">#3E4852</Color>
             <Color x:Key="PanelBg2">#36404A</Color>
 
@@ -35,24 +25,24 @@
 
     <Grid>
 
-        <!-- okunabilirlik -->
-        <BoxView Color="#000000"
-                 Opacity="0.35"
-                 ZIndex="1" />
+        <!-- ✅ içerik: (Resource lookup yerine direkt Margin) -->
+        <Grid
+            Margin="120,90,24,80"
+            RowDefinitions="Auto,Auto,*">
 
-        <!-- içerik -->
-        <Grid ZIndex="2"
-              Margin="{StaticResource SettingsInset}"
-              RowDefinitions="Auto,Auto,*">
-
-            <!-- Büyük cam panel -->
+            <!-- ✅ Büyük panel: hem karartma hem gradient burada (BoxView overlay kaldırıldı) -->
             <Border Grid.RowSpan="3"
                     StrokeThickness="0"
                     StrokeShape="RoundRectangle 10"
                     Padding="0">
+
                 <Border.Background>
+                    <!-- Karartma + gradient tek katmanda -->
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#D03E4852" Offset="0.0" />
+                        <!-- üst biraz daha koyu -->
+                        <GradientStop Color="#B61C232B" Offset="0.0" />
+                        <!-- panel rengi -->
+                        <GradientStop Color="#D03E4852" Offset="0.18" />
                         <GradientStop Color="#D036404A" Offset="1.0" />
                     </LinearGradientBrush>
                 </Border.Background>

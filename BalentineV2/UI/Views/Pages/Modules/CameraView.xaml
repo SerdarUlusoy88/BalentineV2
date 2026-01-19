@@ -12,7 +12,8 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid Margin="{StaticResource CameraInset}"
+    <Grid x:Name="RootGrid"
+          Margin="{StaticResource CameraInset}"
           ColumnDefinitions="*,*"
           ColumnSpacing="12">
 
@@ -50,7 +51,8 @@
             </Grid>
         </Border>
 
-        <Border Grid.Column="1"
+        <Border x:Name="RightPanel"
+                Grid.Column="1"
                 Stroke="{StaticResource ST_Line}"
                 StrokeThickness="1"
                 StrokeShape="RoundRectangle 12"
