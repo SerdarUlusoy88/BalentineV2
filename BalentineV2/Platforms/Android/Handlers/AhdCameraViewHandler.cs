@@ -34,8 +34,18 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
     private int _cameraId;
     private SurfaceListener? _listener;
 
-    // Mirror'ı ilk frame geldikten sonra bir kez daha uygula (TextureView resetleyebiliyor)
+    // ✅ StartPreview sonrası bazı cihazlar transformu resetliyor → ilk frame’de bir kick
     private bool _pendingMirrorKick;
+
+    // ✅ Aynı anda start çağrısı gelmesini engelle
+    private volatile bool _isStarting;
+    private int _startToken;
+
+    // ✅ Preview size cache (aynı cameraId + resolution için tekrar arama yapma)
+    private int _cachedForCameraId = int.MinValue;
+    private int _cachedForRes = int.MinValue;
+    private int _cachedW;
+    private int _cachedH;
 
     protected override TextureView CreatePlatformView()
     {
@@ -51,6 +61,7 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
 
         _cameraId = VirtualView.CameraId;
 
+        // ✅ CameraId < 0 => kesin açma / açıksa kapat
         if (_cameraId < 0)
         {
             StopPreview();
@@ -58,12 +69,16 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
             return;
         }
 
+        // View hazırsa başlat
         if (platformView.IsAvailable && platformView.SurfaceTexture != null)
-            OpenAndStart(platformView.SurfaceTexture);
+            StartAsync(platformView.SurfaceTexture);
     }
 
     protected override void DisconnectHandler(TextureView platformView)
     {
+        // token artır → arka plandaki start sonuçları ignore edilsin
+        unchecked { _startToken++; }
+
         StopPreview();
 
         if (platformView != null)
@@ -74,9 +89,41 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         base.DisconnectHandler(platformView);
     }
 
-    private void OpenAndStart(SurfaceTexture surface)
+    private void StartAsync(SurfaceTexture surface)
     {
         if (_cameraId < 0)
+        {
+            StopPreview();
+            ApplyMirror();
+            return;
+        }
+
+        // ✅ double-start engeli
+        if (_isStarting) return;
+        _isStarting = true;
+
+        var token = ++_startToken;
+
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                // Eğer handler bu sırada dispose olduysa / token değiştiyse iptal
+                if (token != _startToken) return;
+
+                OpenAndStart(surface, token);
+            }
+            finally
+            {
+                _isStarting = false;
+            }
+        });
+    }
+
+    private void OpenAndStart(SurfaceTexture surface, int token)
+    {
+        // ✅ güvenlik: CameraId < 0 ise kesin kapalı kal
+        if (_cameraId < 0 || token != _startToken)
         {
             StopPreview();
             ApplyMirror();
@@ -87,24 +134,33 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         {
             StopPreview();
 
-            _camera = Camera1.Open(_cameraId);
-            if (_camera is null)
+            // Camera.Open bazen bloklar → background thread’deyiz
+            var cam = Camera1.Open(_cameraId);
+            if (cam is null)
                 throw new Exception("Camera.Open returned null");
 
-            ApplyParameters(_camera);
+            // Token değiştiyse bu kamerayı hemen bırak
+            if (token != _startToken)
+            {
+                try { cam.Release(); } catch { }
+                return;
+            }
 
-            _camera.SetPreviewTexture(surface);
-            _camera.StartPreview();
+            _camera = cam;
+
+            ApplyParameters(cam);
+
+            cam.SetPreviewTexture(surface);
+            cam.StartPreview();
             _isPreviewing = true;
 
-            // ✅ preview başladıktan sonra mirror yeniden uygulanacak
             _pendingMirrorKick = true;
 
-            ApplyMirror();
+            // ✅ Started event’i UI tarafında placeholder kapatır
             VirtualView.OnStarted();
 
-            // ✅ bazı cihazlarda StartPreview sonrası 1-2 tick gerekir
-            ScheduleMirrorApply();
+            // Mirror UI thread’de
+            ApplyMirror();
         }
         catch (Exception ex)
         {
@@ -120,11 +176,24 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         int targetH = VirtualView.CameraResolution <= 480 ? 480 :
                       VirtualView.CameraResolution <= 720 ? 720 : 1080;
 
-        var sizes = p.SupportedPreviewSizes;
-        if (sizes != null && sizes.Any())
+        // ✅ cache: aynı camId + resolution ise tekrar size arama yapma
+        if (_cachedForCameraId == _cameraId && _cachedForRes == targetH && _cachedW > 0 && _cachedH > 0)
         {
-            var best = sizes.OrderBy(s => Math.Abs(s.Height - targetH)).First();
-            p.SetPreviewSize(best.Width, best.Height);
+            p.SetPreviewSize(_cachedW, _cachedH);
+        }
+        else
+        {
+            var sizes = p.SupportedPreviewSizes;
+            if (sizes != null && sizes.Any())
+            {
+                var best = sizes.OrderBy(s => Math.Abs(s.Height - targetH)).First();
+                p.SetPreviewSize(best.Width, best.Height);
+
+                _cachedForCameraId = _cameraId;
+                _cachedForRes = targetH;
+                _cachedW = best.Width;
+                _cachedH = best.Height;
+            }
         }
 
         cam.SetParameters(p);
@@ -141,35 +210,16 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
 
             if (!VirtualView.Mirror)
             {
-                // reset
                 PlatformView.SetTransform(null);
                 PlatformView.RotationY = 0f;
                 PlatformView.ScaleX = 1f;
                 return;
             }
 
-            // ✅ EN GARANTİ: GPU ile Y ekseninde çevir
-            // (TextureView transform/ScaleX bazı cihazlarda preview'a etki etmiyor)
+            // ✅ Sende çalışan garanti yöntem
             PlatformView.SetTransform(null);
             PlatformView.ScaleX = 1f;
             PlatformView.RotationY = 180f;
-        });
-    }
-
-
-    private void ScheduleMirrorApply()
-    {
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                // iki kez dene (StartPreview sonrası reset olabiliyor)
-                await Task.Delay(60);
-                ApplyMirror();
-                await Task.Delay(140);
-                ApplyMirror();
-            }
-            catch { }
         });
     }
 
@@ -184,7 +234,10 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
                 VirtualView.OnStopped();
             }
         }
-        catch { }
+        catch
+        {
+            // ignore
+        }
         finally
         {
             try { _camera?.Release(); } catch { }
@@ -203,7 +256,7 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         }
 
         if (PlatformView?.IsAvailable == true && PlatformView.SurfaceTexture != null)
-            OpenAndStart(PlatformView.SurfaceTexture);
+            StartAsync(PlatformView.SurfaceTexture);
     }
 
     private sealed class SurfaceListener : Java.Lang.Object, TextureView.ISurfaceTextureListener
@@ -214,11 +267,13 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         public void OnSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)
         {
             if (_owner._cameraId < 0) return;
-            _owner.OpenAndStart(surface);
+            _owner.StartAsync(surface);
         }
 
         public bool OnSurfaceTextureDestroyed(SurfaceTexture surface)
         {
+            // token artır → arka plan start sonuçları ignore
+            unchecked { _owner._startToken++; }
             _owner.StopPreview();
             return true;
         }
@@ -228,7 +283,7 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
 
         public void OnSurfaceTextureUpdated(SurfaceTexture surface)
         {
-            // ✅ ilk frame geldikten sonra TextureView bazen transformu sıfırlar → bir kere kick
+            // ✅ ilk frame geldikten sonra bir kere daha mirror uygula
             if (_owner._pendingMirrorKick)
             {
                 _owner._pendingMirrorKick = false;
@@ -242,8 +297,10 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
         var ah = (AhdCameraViewHandler)h;
         ah._cameraId = v.CameraId;
 
+        // ✅ -1 ise kesin kapat + reset
         if (ah._cameraId < 0)
         {
+            unchecked { ah._startToken++; }
             ah.StopPreview();
             ah.ApplyMirror();
             return;
@@ -255,15 +312,22 @@ public class AhdCameraViewHandler : ViewHandler<AhdCameraView, TextureView>
     private static void MapMirror(IElementHandler h, AhdCameraView v)
     {
         var ah = (AhdCameraViewHandler)h;
-
-        // ✅ Mirror değişince bazen tek apply yetmez
         ah.ApplyMirror();
-        ah.ScheduleMirrorApply();
+
+        // Mirror değişince bazen frame resetlenir; bir sonraki frame’de de kick eder zaten
+        ah._pendingMirrorKick = true;
     }
 
     private static void MapResolution(IElementHandler h, AhdCameraView v)
     {
         var ah = (AhdCameraViewHandler)h;
+
+        // cache geçersiz (resolution değişti)
+        ah._cachedForCameraId = int.MinValue;
+        ah._cachedForRes = int.MinValue;
+        ah._cachedW = 0;
+        ah._cachedH = 0;
+
         ah.Restart();
     }
 }
